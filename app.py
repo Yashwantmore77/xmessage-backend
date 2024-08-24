@@ -1,15 +1,17 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request , render_template
 from pymongo import MongoClient
 from bson import ObjectId
 import bcrypt
 import jwt
 import datetime
 from flask_cors import CORS  # Import CORS
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 
 # Enable CORS
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins; you can restrict this to specific origins if needed
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config['SECRET_KEY'] = 'xmessages'  # Replace with your own secret key
 
@@ -145,6 +147,21 @@ def protected():
         return jsonify({'message': 'Token has expired!'}), 401
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Invalid token!'}), 401
+    
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socketio.on('signal')
+def handle_signal(data):
+    # Send the signaling data to the intended peer
+    emit('signal', data, broadcast=True)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
