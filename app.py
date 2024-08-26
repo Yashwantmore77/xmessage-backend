@@ -6,8 +6,10 @@ import jwt
 import datetime
 from flask_cors import CORS  # Import CORS
 from flask_socketio import SocketIO, emit
+from pymongo.server_api import ServerApi
 
 app = Flask(__name__)
+uri = "mongodb+srv://yashwantmore77:bh9RWf0EGKA13LsO@cluster0.oyjdx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # Enable CORS
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins; you can restrict this to specific origins if needed
@@ -17,7 +19,19 @@ app.config['SECRET_KEY'] = 'xmessages'  # Replace with your own secret key
 
 
 # Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017/')
+# client = MongoClient('mongodb://localhost:27017/')
+
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+
 
 # Select the database
 db = client['xmessages']
