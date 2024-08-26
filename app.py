@@ -1,13 +1,14 @@
+# app.py
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
 from bson import ObjectId
 import bcrypt
 import jwt
 import datetime
-import os
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from pymongo.server_api import ServerApi
+import os
 
 def create_app():
     app = Flask(__name__)
@@ -17,13 +18,13 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": "*"}})
     socketio = SocketIO(app, cors_allowed_origins="*")
 
-    app.config['SECRET_KEY'] = 'xmessages'
+    app.config['SECRET_KEY'] = 'your-secret-key'
 
+    # Connect to MongoDB
     client = MongoClient(uri, server_api=ServerApi('1'))
-
     try:
         client.admin.command('ping')
-        print("Pinged your deployment. You successfully connected to MongoDB!")
+        print("Connected to MongoDB")
     except Exception as e:
         print(e)
 
@@ -84,7 +85,6 @@ def create_app():
                     'user_id': str(user['_id']),
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
                 }, app.config['SECRET_KEY'], algorithm='HS256')
-
                 login_record = {
                     'user_id': user['_id'],
                     'login_time': datetime.datetime.utcnow(),
@@ -128,9 +128,9 @@ def create_app():
     def handle_signal(data):
         emit('signal', data, broadcast=True)
 
-    return app, socketio
+    return app
 
 if __name__ == "__main__":
-    app, socketio = create_app()
+    app = create_app()
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port)
